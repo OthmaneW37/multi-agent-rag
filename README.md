@@ -1,4 +1,4 @@
-# 🤖 Système Multi-Agents pour Recherche Académique avec RAG
+#  Système Multi-Agents pour Recherche Académique avec RAG
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://www.python.org/)
 [![LangChain](https://img.shields.io/badge/LangChain-0.1%2B-green)](https://python.langchain.com/)
@@ -10,7 +10,7 @@
 
 ---
 
-## 📋 Table des matières
+##  Table des matières
 
 - [Contexte et Objectifs](#contexte-et-objectifs)
 - [Architecture du Système](#architecture-du-système)
@@ -32,10 +32,10 @@ Ce projet implémente un **Assistant de Recherche Académique** sous forme de sy
 
 ### Objectifs principaux
 
-1. ✅ Concevoir un système multi-agents avec un cas d'usage concret (Recherche Académique)
-2. ✅ Implémenter un pipeline RAG complet via **LlamaIndex** pour contextualiser les agents
-3. ✅ Développer 4 agents IA avec **LangChain**, leurs outils et leur raisonnement
-4. ✅ Démontrer la collaboration inter-agents via un orchestrateur intelligent
+1.  Concevoir un système multi-agents avec un cas d'usage concret (Recherche Académique)
+2.  Implémenter un pipeline RAG complet via **LlamaIndex** pour contextualiser les agents
+3.  Développer 4 agents IA avec **LangChain**, leurs outils et leur raisonnement
+4.  Démontrer la collaboration inter-agents via un orchestrateur intelligent
 
 ---
 
@@ -228,7 +228,7 @@ Le dossier `data/raw/` contient 5 articles scientifiques simulés couvrant :
 
 ## Les Agents
 
-### 🤖 Agent 1 : Collecteur (`src/agents/collecteur.py`)
+###  Agent 1 : Collecteur (`src/agents/collecteur.py`)
 
 **Rôle** : Parcourir le corpus indexé via RAG et extraire les passages pertinents.
 
@@ -242,7 +242,7 @@ Le dossier `data/raw/` contient 5 articles scientifiques simulés couvrant :
 
 ---
 
-### 🔍 Agent 2 : Analyste (`src/agents/analyste.py`)
+###  Agent 2 : Analyste (`src/agents/analyste.py`)
 
 **Rôle** : Identifier les tendances, comparer les approches, détecter les lacunes.
 
@@ -255,7 +255,7 @@ Le dossier `data/raw/` contient 5 articles scientifiques simulés couvrant :
 
 ---
 
-### 📝 Agent 3 : Rédacteur (`src/agents/redacteur.py`)
+###  Agent 3 : Rédacteur (`src/agents/redacteur.py`)
 
 **Rôle** : Générer une synthèse structurée avec citations et références.
 
@@ -274,7 +274,7 @@ Le dossier `data/raw/` contient 5 articles scientifiques simulés couvrant :
 
 ---
 
-### ✅ Agent 4 : Vérificateur (`src/agents/verificateur.py`)
+###  Agent 4 : Vérificateur (`src/agents/verificateur.py`)
 
 **Rôle** : Vérifier la cohérence, l'exactitude des citations et la qualité globale.
 
@@ -437,7 +437,7 @@ projet_multi_agents/
 
 ## Auteurs
 
-**Binôme** : [Nom étudiant 1] & [Nom étudiant 2]
+**Binôme** : Othmane Moussawi & Ahmed Rayane Ramzi
 
 **Module** : IA Distribuée & Systèmes Multi-Agents
 
