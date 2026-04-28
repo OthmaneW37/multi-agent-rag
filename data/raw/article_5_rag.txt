@@ -1,0 +1,61 @@
+Titre : Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks
+Auteurs : Lewis et al., 2020
+Organisation : Facebook AI Research / University College London
+
+Résumé
+Cet article introduit le paradigme Retrieval-Augmented Generation (RAG), combinant la récupération d'informations (retrieval) avec la génération de texte pour créer des modèles de langage capables d'accéder à des connaissances externes et de produire des réponses mieux fondées et vérifiables.
+
+Contexte et motivation
+Les modèles de langage paramétriques (comme GPT) stockent les connaissances dans leurs poids, ce qui pose plusieurs problèmes :
+- Impossibilité de mettre à jour les connaissances sans ré-entraînement
+- Hallucinations fréquentes sur des faits spécifiques
+- Incapacité à citer des sources
+- Taille fixe du paramétrage limitant la quantité de connaissances
+
+Architecture RAG
+RAG combine deux composants :
+1. Rétriever : un modèle de récupération dense basé sur DPR (Dense Passage Retrieval) qui encode les documents et les requêtes dans un espace vectoriel commun pour trouver les passages pertinents.
+2. Générateur : un modèle séquence-à-séquence (BART) qui génère la réponse conditionnée par la requête et les passages récupérés.
+
+Deux variantes sont proposées :
+- RAG-Sequence : utilise les mêmes passages pour générer l'ensemble de la séquence
+- RAG-Token : peut utiliser différents passages pour chaque token généré
+
+Processus d'inférence
+Pour une requête donnée x :
+1. Le retriever encode x et recherche les top-k passages pertinents z dans la base documentaire
+2. Le générateur produit la réponse y en conditionnant sur x et z
+3. La marginalisation sur les différents passages permet d'obtenir la réponse finale
+
+Résultats expérimentaux
+RAG a été évalué sur des tâches de question-réponse ouvertes :
+- Natural Questions : 44.5% exact match (vs 41.5% pour T5-11B)
+- TriviaQA : 68.0% exact match
+- WebQuestions : 45.2% exact match
+
+Avantages clés
+1. Connaissances actualisables : la base documentaire peut être mise à jour sans ré-entraînement
+2. Réponses vérifiables : les passages sources sont identifiables
+3. Efficacité paramétrique : le modèle n'a pas besoin de mémoriser tous les faits
+4. Transfert zero-shot : le modèle généralise à de nouveaux domaines
+
+Extensions et évolutions
+- RAG avec indexation incrémentale pour des bases de connaissances dynamiques
+- Fusion avec des graphes de connaissances pour des raisonnements structurés
+- Adaptation aux LLMs modernes (GPT-4, Claude) pour des capacités améliorées
+- Hybrid RAG combinant retrieval dense et sparse (BM25)
+
+Impact sur l'écosystème LLM
+RAG est devenu l'architecture standard pour les applications enterprise des LLMs, permettant :
+- L'interaction avec des données privées et propriétaires
+- La réduction des hallucinations dans des domaines spécialisés
+- La conformité réglementaire via la traçabilité des sources
+
+Limites
+- Dépendance à la qualité du retriever
+- Latence accrue due à l'étape de retrieval
+- Complexité d'intégration avec des bases documentaires hétérogènes
+- Coût de maintenance des index vectoriels à grande échelle
+
+Conclusion
+RAG établit un paradigme hybride puissant entre mémoire paramétrique et non-paramétrique, offrant une voie prometteuse pour des systèmes de NLP à la fois performants, transparents et actualisables.
