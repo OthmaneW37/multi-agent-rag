@@ -5,7 +5,7 @@
 [![LlamaIndex](https://img.shields.io/badge/LlamaIndex-0.9%2B-orange)](https://www.llamaindex.ai/)
 
 > **Projet de Controle Continu - IA Distribuee & Systemes Multi-Agents**
-> 
+>
 > Analyse tactique et strategique pour le Wydad Athletic Club (WAC) via un systeme multi-agents avec RAG, alimente par des donnees reelles de FootyStats.
 
 ---
@@ -515,7 +515,7 @@ ProjetAgenticAI/
 
 ## Auteurs
 
-**Binome** : [Nom etudiant 1] & [Nom etudiant 2]
+**Binome** : Othmane Moussawi & Ahmed Rayane Ramzi
 
 **Module** : IA Distribuee & Systemes Multi-Agents
 
