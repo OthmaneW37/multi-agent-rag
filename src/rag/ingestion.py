@@ -1,6 +1,5 @@
 """Module d'ingestion des documents pour le pipeline RAG."""
 
-import os
 from pathlib import Path
 from typing import List
 
@@ -9,13 +8,19 @@ from llama_index.core import SimpleDirectoryReader, Document
 
 def load_documents(data_path: str) -> List[Document]:
     """
-    Charge tous les documents du répertoire data_path.
-    
-    Supports : PDF, TXT, CSV, JSON, MD, et autres formats communs
+    Charge tous les documents du repertoire data_path.
+
+    Supports : PDF, TXT, CSV, JSON, MD
+
+    Args:
+        data_path: Chemin vers le repertoire contenant les documents
+
+    Returns:
+        Liste de documents LlamaIndex
     """
     data_dir = Path(data_path)
     if not data_dir.exists():
-        raise FileNotFoundError(f"Le répertoire {data_path} n'existe pas.")
+        raise FileNotFoundError(f"Le repertoire {data_path} n'existe pas.")
 
     try:
         reader = SimpleDirectoryReader(
@@ -24,24 +29,16 @@ def load_documents(data_path: str) -> List[Document]:
             filename_as_id=True,
         )
         documents = reader.load_data()
-        
-        # Ajouter les métadonnées de type si absentes
+
+        # Ajouter les metadata de type si absentes
         for doc in documents:
             if "type" not in doc.metadata:
                 source = doc.metadata.get("file_name", "")
-                if source.endswith(".pdf"):
-                    doc.metadata["type"] = "pdf"
-                elif source.endswith(".csv"):
-                    doc.metadata["type"] = "csv"
-                elif source.endswith(".json"):
-                    doc.metadata["type"] = "json"
-                elif source.endswith(".txt"):
-                    doc.metadata["type"] = "txt"
-                else:
-                    doc.metadata["type"] = "unknown"
+                suffix = Path(source).suffix.lower()
+                doc.metadata["type"] = suffix.lstrip(".") or "txt"
 
-        print(f"{len(documents)} documents chargés depuis {data_path}")
+        print(f"[RAG] {len(documents)} documents charges depuis {data_path}")
         return documents
     except Exception as e:
-        print(f"Erreur lors du chargement des documents : {e}")
+        print(f"[RAG] Erreur lors du chargement : {e}")
         return []

@@ -1,0 +1,302 @@
+﻿Club,Number,Position,Nationality,Player,Captain
+DH El-Jadida,1,GK,MAR,Marouane Bessak,False
+DH El-Jadida,2,DF,MAR,Oussama Benchchaoui,False
+DH El-Jadida,3,DF,MAR,Hamza Malki,False
+DH El-Jadida,4,DF,MAR,Marouane Lemzaouri,False
+DH El-Jadida,5,DF,MLI,Abdoulaye Sanogo,False
+DH El-Jadida,6,MF,MAR,Brahim Bouzidi,False
+DH El-Jadida,7,DF,MAR,Imad Sabik,False
+DH El-Jadida,8,MF,MAR,Ayoub El Khafi,False
+DH El-Jadida,9,FW,MAR,Yassine Lamine,False
+DH El-Jadida,10,MF,MAR,Mouad Mouchtanim,False
+DH El-Jadida,13,DF,MAR,Aymen Riyane,False
+DH El-Jadida,14,DF,MAR,Mohamed Bentarcha,False
+DH El-Jadida,16,GK,MAR,Ayoub Ait Wahmane,False
+DH El-Jadida,17,FW,MAR,Abderrazak Ennakouss,False
+DH El-Jadida,18,MF,MTN,Moctar El Hacen,False
+DH El-Jadida,19,MF,MAR,Houdaifa Jamaäne,False
+DH El-Jadida,20,DF,MAR,Yassine Fatine,False
+DH El-Jadida,22,MF,MAR,Mohamed Hilali,False
+DH El-Jadida,23,DF,MAR,Soufiane Abaaziz,False
+DH El-Jadida,24,DF,MAR,Zakaria Oubraim,False
+DH El-Jadida,30,GK,MTN,Babacar Niasse,False
+DH El-Jadida,55,FW,SEN,Papa Diallo,False
+DH El-Jadida,77,FW,MAR,Abdellah Ziani,False
+DH El-Jadida,80,FW,SEN,Romuald Dacosta,False
+DH El-Jadida,88,MF,MAR,Youssef Michte,False
+DH El-Jadida,99,MF,MAR,Achraf Al Idrissi,False
+AS FAR,1,GK,MAR,Ayoub El Khayati,False
+AS FAR,2,DF,ANG,Tó Carneiro,False
+AS FAR,3,MF,MAR,Anas Bach,False
+AS FAR,4,DF,SEN,Fallou Mendy,False
+AS FAR,5,DF,MAR,Yunis Abdelhamid,False
+AS FAR,6,MF,MAR,Zineddine Derrag,False
+AS FAR,7,FW,MAR,Youssef El Fahli,False
+AS FAR,8,MF,MAR,Khalid Aït Ouarkhane,False
+AS FAR,9,FW,MAR,Mouhcine Bouriga,False
+AS FAR,10,FW,MAR,Reda Slim,False
+AS FAR,11,FW,MAR,Ahmed Hammoudan,False
+AS FAR,14,MF,MAR,Taoufik Razko,False
+AS FAR,15,DF,MAR,Marouane Louadni,False
+AS FAR,16,GK,MAR,Ahmed Reda Tagnaouti,False
+AS FAR,17,FW,MAR,Hamza Khabba,False
+AS FAR,19,MF,MAR,Jalal-Eddine El Khfiyef,False
+AS FAR,22,GK,MAR,Hakim Mesbahi,False
+AS FAR,23,DF,MAR,Jamal Ech-Chamakh,False
+AS FAR,24,DF,MTN,Nouh Mohamed El Abd,False
+AS FAR,26,MF,CGO,Nolan Mbemba,False
+AS FAR,27,DF,MAR,Ayoub Ait Khassou,False
+AS FAR,28,FW,COD,Gaëtan Laura,False
+AS FAR,34,MF,MAR,Mohamed Rabie Hrimat,True
+AS FAR,40,MF,MAR,Abdelfettah Hadraf,False
+AS FAR,53,FW,BDI,Destin Maniriho,False
+FUS Rabat,1,GK,MAR,Rachid Ghanimi,False
+FUS Rabat,3,DF,MAR,Ayoub Mouddane,False
+FUS Rabat,5,MF,MAR,Anas Serrhat,False
+FUS Rabat,6,DF,MAR,Mouad Bahsain,False
+FUS Rabat,8,MF,MAR,Abdessamad Mahir,False
+FUS Rabat,9,FW,MAR,Ayoub Mouloua,False
+FUS Rabat,12,GK,MAR,Mehdi Bellarabi,False
+FUS Rabat,13,GK,MAR,Aymane Majid,False
+FUS Rabat,14,MF,JOR,Amine Souane,False
+FUS Rabat,16,DF,MAR,Anas El Makkaoui,False
+FUS Rabat,18,DF,MAR,Hodifa El Mahssani,False
+FUS Rabat,19,FW,MAR,Hamza Hannouri,False
+FUS Rabat,20,FW,MAR,Salaheddine Benyachou,False
+FUS Rabat,22,DF,MAR,El Mehdi El Bassil,False
+FUS Rabat,23,DF,MAR,Zouheir El Hachemi,False
+FUS Rabat,26,DF,MAR,Oussama Raoui,False
+FUS Rabat,30,MF,MAR,Amine El Msane,False
+FUS Rabat,33,DF,MAR,Moncef Amri,False
+FUS Rabat,34,DF,MAR,Oussama Soukhane,False
+FUS Rabat,90,GK,MAR,Achraf Hilali,False
+HUS Agadir,2,MF,MAR,Abderrahmane Qassaq,False
+HUS Agadir,3,MF,MAR,Badreddine Octobre,False
+HUS Agadir,5,MF,MAR,Jalal Tachtach,False
+HUS Agadir,6,DF,MAR,Mouad Bahsain,False
+HUS Agadir,7,FW,MAR,Mohamed Bakhkhach,False
+HUS Agadir,8,MF,MAR,Zakaria Ami,False
+HUS Agadir,9,FW,FRA,Walid Jarmouni,False
+HUS Agadir,10,MF,MAR,Abdallah Boukhanfer,False
+HUS Agadir,11,MF,ESP,Ayoub Yousfi,False
+HUS Agadir,13,MF,MAR,Hamza Moumadi,False
+HUS Agadir,15,FW,GLP,Ange-Freddy Plumain,False
+HUS Agadir,16,MF,BEN,Rodrigue Kossi,False
+HUS Agadir,17,FW,CMR,Baba Bello Ilou,False
+HUS Agadir,18,DF,FRA,Zakary Lamgahez,False
+HUS Agadir,19,DF,POR,Euclides Cabral,False
+HUS Agadir,20,MF,MAR,Mohamed Katiba,False
+HUS Agadir,21,DF,FRA,Nassim Ouammou,False
+HUS Agadir,23,FW,MAR,Hamid Ahadad,False
+HUS Agadir,25,DF,SEN,Assane Bèye,False
+HUS Agadir,28,FW,MAR,Mohamed Ounajem,False
+HUS Agadir,30,DF,MAR,Soulaiman El Amrani,False
+HUS Agadir,31,GK,MAR,Ilyass Motik,False
+HUS Agadir,33,FW,MAR,Fahd Bendahmane,False
+HUS Agadir,36,DF,MAR,Younes El Amali,False
+HUS Agadir,44,DF,MAR,Adil Garnan,False
+HUS Agadir,61,GK,MAR,Badreddine Abyir,False
+HUS Agadir,65,GK,MAR,Hicham El Majhad,False
+HUS Agadir,95,MF,CGO,Fred Dembi,False
+IR Tanger,1,DF,MAR,Amine El Ouad,False
+IR Tanger,4,DF,MAR,Mohamed Saoud,True
+IR Tanger,6,DF,MAR,Bilal El Ouadghiri,False
+IR Tanger,8,MF,MAR,Faouzi Abdelmottalib,False
+IR Tanger,9,FW,CGO,Dylan Saint-Louis,False
+IR Tanger,10,MF,FRA,Mohamed El Arouch,False
+IR Tanger,12,GK,TOG,Malcolm Barcola,False
+IR Tanger,13,DF,MAR,Oussama Al Aiz,False
+IR Tanger,14,FW,MAR,Haitam El Bahja,False
+IR Tanger,16,MF,MAR,Ahmed Chentouf,True
+IR Tanger,17,MF,MAR,Abdelhamid Maâli,False
+IR Tanger,19,FW,MAR,Jawad Ghabra,False
+IR Tanger,20,MF,MAR,Ennama El Bellali,False
+IR Tanger,21,MF,MAR,Hamza Moudene,False
+IR Tanger,22,DF,MAR,Zakaria Kiani,False
+IR Tanger,23,DF,MAR,Anass Lamrabat,False
+IR Tanger,25,GK,MAR,Ahmed Azmi,False
+IR Tanger,28,FW,MAR,Karim Lagrouch,False
+IR Tanger,38,FW,FRA,Livty Kpolo,False
+IR Tanger,72,FW,SEN,Papa Magueye Gaye,False
+IR Tanger,73,GK,MAR,Youssef Laghzal,False
+IR Tanger,75,FW,SEN,Moussa Koté,False
+IR Tanger,79,MF,CIV,Siriki Sanogo,False
+IR Tanger,97,DF,MAR,Badr Gaddarine,False
+IR Tanger,99,FW,BEL,Zakaria Bakkali,False
+MAS Fes,2,MF,MAR,Hamza Afsal,False
+MAS Fes,3,DF,ITA,Zakaria Hamadi,False
+MAS Fes,4,DF,MAR,Saad Ait Khorsa,False
+MAS Fes,5,DF,MAR,Aymane Chbani,False
+MAS Fes,6,MF,MAR,Oussama Noureddine,False
+MAS Fes,7,FW,BOT,Kabelo Seakanyeng,False
+MAS Fes,8,MF,MAR,Achraf Harmach,False
+MAS Fes,9,FW,MAR,Soufiane Benjdida,False
+MAS Fes,11,FW,NED,Soulyman Allouch,False
+MAS Fes,12,GK,MAR,Oussama Errahmany,False
+MAS Fes,13,DF,MAR,Adil Rhaili,False
+MAS Fes,16,GK,MAR,Salaheddine Chihab,False
+MAS Fes,17,FW,FRA,Kevin Yamga,False
+MAS Fes,19,MF,MAR,Anas Tahiri,False
+MAS Fes,20,FW,MTN,Cheikhna Semega,False
+MAS Fes,21,DF,MAR,Marouane Ouhrou,False
+MAS Fes,23,MF,MAR,Nizar Guessous,False
+MAS Fes,24,MF,MAR,Mohamed Loumim,False
+MAS Fes,26,MF,MAR,Adam Brika,False
+MAS Fes,27,MF,MAR,El Habib Brija,False
+MAS Fes,28,DF,NGA,Benjamin Tanimu,False
+MAS Fes,31,DF,MAR,Hamza Ait Allal,False
+MAS Fes,32,DF,MAR,Driss El Jabli,False
+MAS Fes,36,FW,MAR,Zakaria Allaoui,False
+MAS Fes,68,MF,MAR,Khalid Baba,False
+MAS Fes,77,FW,MAR,Youssef Dalouzi,False
+MAS Fes,90,FW,CIV,Privat Djéssan Bi,False
+MAS Fes,95,MF,MAR,Amine Oudrhiri,False
+MAS Fes,99,GK,MAR,Walid Laghrissi,False
+OC Safi,1,GK,MAR,Abderrahmane Kernane,False
+OC Safi,2,DF,MAR,Anas Soufeir,False
+OC Safi,3,DF,MAR,Walid Atik,False
+OC Safi,4,DF,CGO,Fred Ngoma,False
+OC Safi,5,MF,MAR,Salaheddine Errahouli,False
+OC Safi,6,MF,FRA,Sofian El Moudane,False
+OC Safi,7,FW,MAR,Anas Samoudi,False
+OC Safi,8,MF,MAR,Faraji Karmoune,False
+OC Safi,11,FW,MAR,Marwane Elaz,False
+OC Safi,12,GK,MAR,Hamza Hamiani,False
+OC Safi,13,DF,ALG,Houari Ferhani,False
+OC Safi,14,FW,SEN,Moussa Koné,False
+OC Safi,15,DF,MAR,Yassine Kordani,False
+OC Safi,16,MF,MAR,Oussama Ichou,False
+OC Safi,17,DF,MAR,Ayman Hadry,False
+OC Safi,18,FW,MAR,Imad Khannouss,False
+OC Safi,19,FW,MAR,Younes Najari,False
+OC Safi,21,MF,FRA,Mohamed Chemlal,False
+OC Safi,22,FW,MAR,Anass Eddaou,False
+OC Safi,24,DF,MAR,Yasser Ezzine,False
+OC Safi,25,GK,MAR,Youssef El Motie,False
+OC Safi,26,GK,MAR,Imad Askar,False
+OC Safi,27,FW,MAR,Saad El Morsli,False
+OC Safi,28,FW,TUN,Achref Habbassi,False
+OC Safi,29,MF,MAR,Soulaimane El Bouchqali,False
+OC Safi,31,DF,MAR,Hamza Semmoumy,False
+OC Safi,32,DF,MAR,Imad Serbout,False
+OC Safi,-,MF,MAR,Ayman Ouhatti,False
+Raja CA,1,GK,MAR,El Mehdi Al Harrar,False
+Raja CA,2,DF,MAR,Abdelkarim Baadi,False
+Raja CA,3,DF,MAR,Amine Khammas,False
+Raja CA,4,DF,MAR,Ismael Mokadem,False
+Raja CA,5,DF,MAR,Abdellah Khafifi,True
+Raja CA,6,MF,MAR,Aymen Barkok,False
+Raja CA,7,DF,MAR,Mohamed Boulacsoute,False
+Raja CA,8,MF,MAR,Hilal Ferdaoussi,False
+Raja CA,9,FW,MAR,Ismail Khafi,False
+Raja CA,11,FW,MAR,Ayoub Maamouri,False
+Raja CA,12,GK,MAR,Khalid Kbiri Alaoui,False
+Raja CA,13,DF,MAR,Badr Benoun,True
+Raja CA,15,FW,JOR,Sharara,False
+Raja CA,19,MF,MAR,Othmane Chraibi,False
+Raja CA,20,DF,MAR,Ayoub El Amloud,False
+Raja CA,21,FW,MAR,Mouad Dahak,False
+Raja CA,23,MF,MAR,Mohamed Al Makahasi,False
+Raja CA,27,FW,NGA,Mathias Oyewusi,False
+Raja CA,30,MF,KOS,Besar Halimi,False
+Raja CA,32,GK,MAR,Yassine Zoubir,False
+Raja CA,33,DF,MAR,Mehdi Mchakhchekh,False
+Raja CA,34,MF,MAR,Sabir Bougrine,False
+Raja CA,35,MF,GUI,Balla Moussa Conté,False
+Raja CA,77,FW,MAR,Adam Ennafati,False
+Raja CA,79,FW,SEN,Pape Ousmane Sakho,False
+RS Berkane,1,GK,MAR,Munir Mohamedi,True
+RS Berkane,2,DF,MAR,Amine El Maswab,False
+RS Berkane,3,DF,MAR,Mohamed Aymen Sadil,False
+RS Berkane,4,DF,TUN,Oussama Haddadi,False
+RS Berkane,5,MF,MLI,Soumaila Sidibe,False
+RS Berkane,8,MF,MAR,Ayoub Khairi,False
+RS Berkane,9,FW,MAR,Oussama Lamlioui,False
+RS Berkane,10,FW,MAR,Mohamed El Morabit,False
+RS Berkane,11,FW,MAR,Youssef Mehri,False
+RS Berkane,12,GK,MAR,Mehdi Miftah,False
+RS Berkane,14,MF,FRA,Rayane Aabid,False
+RS Berkane,15,DF,MAR,Abdelhak Assal,False
+RS Berkane,16,GK,MAR,Kamal Bilal,False
+RS Berkane,17,MF,MAR,Yassine Labhiri,False
+RS Berkane,18,FW,MAR,Imad Riahi,False
+RS Berkane,19,DF,MAR,Hamza El Moussaoui,False
+RS Berkane,20,DF,MAR,Haytam Manaout,False
+RS Berkane,21,FW,MAR,Amine Azri,False
+RS Berkane,22,GK,MAR,Anas Zniti,False
+RS Berkane,23,FW,MAR,Mounir Chouiar,False
+RS Berkane,24,FW,MAR,Youness El Kaabi,False
+RS Berkane,27,DF,MAR,Ismaël Kandouss,False
+RS Berkane,28,FW,SEN,Paul Bassène,False
+RS Berkane,29,MF,FRA,Zinédine Machach,False
+RS Berkane,32,MF,MAR,Mohamed Ouyahia,False
+RS Berkane,33,DF,MAR,Et-Tayeb Boukhriss,False
+RS Berkane,35,MF,MAR,Reda Hajji,False
+UTS Rabat,1,GK,MAR,Reda Asmama,False
+UTS Rabat,2,DF,MAR,Youness Akharraz,False
+UTS Rabat,3,DF,MAR,Anas Nanah,False
+UTS Rabat,4,DF,POR,Tahar El Khalej,False
+UTS Rabat,5,DF,MAR,Yassine El Khalej,False
+UTS Rabat,6,MF,POR,Danny,False
+UTS Rabat,7,FW,MAR,Youness Dahmani,False
+UTS Rabat,8,MF,MAR,Hossam Essadak,False
+UTS Rabat,9,FW,MAR,Yacine Bammou,False
+UTS Rabat,10,MF,MAR,Mohamed Amine Essahel,False
+UTS Rabat,11,FW,MAR,Ahmed Aboulfath,False
+UTS Rabat,13,DF,MAR,Youssef Kajai,False
+UTS Rabat,14,FW,MAR,Abdelkabir El Ouadi,False
+UTS Rabat,15,DF,MAR,Hamza Regragui,False
+UTS Rabat,16,MF,MAR,Hamza Bousqal,False
+UTS Rabat,17,MF,MAR,Souhayl Zamrat,False
+UTS Rabat,18,MF,MAR,Omar Arjoune,False
+UTS Rabat,19,FW,MAR,Nasreddine Moustaghfir,False
+UTS Rabat,20,DF,NED,Ilias Haddad,False
+UTS Rabat,21,FW,MAR,Brahim El Bahraoui,False
+UTS Rabat,23,MF,MAR,Abdelhay Forsy,False
+UTS Rabat,25,DF,MAR,Taha Majni,False
+UTS Rabat,26,MF,CIV,Banfa Sylla,False
+UTS Rabat,27,DF,MAR,Zakaria Aiada,False
+UTS Rabat,28,DF,MAR,Khalid Kasbi,False
+UTS Rabat,29,FW,MAR,Mohamed Fouzair,False
+UTS Rabat,31,MF,MAR,Walid Rhailouf,False
+UTS Rabat,33,MF,MAR,Redouan Ait Lamkadem,False
+UTS Rabat,34,FW,MAR,Zoubir Housni,False
+UTS Rabat,37,FW,MAR,Salim Ghazzani,False
+UTS Rabat,39,FW,MAR,Yassine Zraa,False
+UTS Rabat,40,MF,MAR,Adam Chakir,False
+UTS Rabat,41,DF,MAR,Mehdi Ashabi,False
+UTS Rabat,50,GK,MAR,Walid Hasbi,False
+UTS Rabat,52,DF,MAR,Fouad Zahouani,False
+UTS Rabat,55,GK,MAR,Abderahmane El Houasli,False
+Wydad AC,1,GK,MAR,Abdelali Mhamdi,False
+Wydad AC,2,DF,MAR,Mohamed Moufid,False
+Wydad AC,4,DF,MAR,Amine Aboulfath,False
+Wydad AC,5,DF,MAR,Ayman El Wafi,False
+Wydad AC,6,MF,MAR,Walid Sabbar,False
+Wydad AC,7,FW,MAR,Hakim Ziyech,False
+Wydad AC,8,FW,MAR,Mohamed Rayhi,False
+Wydad AC,9,FW,FRA,Wissam Ben Yedder,False
+Wydad AC,10,MF,BOL,Ramiro Vaca,False
+Wydad AC,11,FW,MAR,Nordin Amrabat,True
+Wydad AC,13,DF,MAR,Sallah Moussaddaq,False
+Wydad AC,14,DF,BRA,Guilherme Ferreira,False
+Wydad AC,15,MF,MAR,Abdelghafour Lamirat,False
+Wydad AC,16,GK,MAR,Mehdi Benabid,False
+Wydad AC,17,MF,MAR,Rayane Mahtou,False
+Wydad AC,18,FW,MAR,Hamza Elowasti,False
+Wydad AC,19,FW,MAR,Hamza Hannouri,False
+Wydad AC,20,FW,BOL,Moises Paniagua,False
+Wydad AC,22,DF,NED,Bart Meijers,False
+Wydad AC,24,DF,MAR,Ayoub Boucheta,False
+Wydad AC,26,MF,MAR,Hamza Sakhi,False
+Wydad AC,27,MF,COD,Joseph Bakasu,False
+Wydad AC,28,FW,MAR,Walid Nassi,False
+Wydad AC,29,DF,MAR,Nabil Khali,False
+Wydad AC,32,MF,MAR,Naïm Byar,False
+Wydad AC,22,MF,BRA,Arthur,False
+Wydad AC,34,DF,MAR,Mohamed Bouchouari,False
+Wydad AC,37,FW,MAR,Chamss Eddine El Allaly,False
+Wydad AC,40,FW,MAR,Mohamed El Ouardi,False
+Wydad AC,42,DF,MAR,Brahim Laafouri,False
+Wydad AC,53,FW,MAR,Salman Rihani,False
+Wydad AC,55,GK,MAR,Aymen El Jaafary,False

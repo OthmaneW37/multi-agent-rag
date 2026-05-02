@@ -1,0 +1,9 @@
+# Liste des joueurs à exclure des effectifs (anciens joueurs ou erreurs de données)
+# Format: un nom par ligne
+# Wydad AC
+Hakim Ziyech
+Wissam Ben Yedder
+Nordin Amrabat
+Anas Serrhat
+Soufyan Ahannach
+Ahmed Reda Tagnaouti

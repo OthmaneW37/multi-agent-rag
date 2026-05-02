@@ -1,10 +1,8 @@
-"""Couche de compatibilité pour les différentes versions de LangChain."""
+"""Couche de compatibilite pour les differentes versions de LangChain."""
 
 try:
-    # LangChain >= 1.0
     from langchain_classic.agents import create_react_agent, AgentExecutor
 except ImportError:
-    # LangChain 0.2.x
     from langchain.agents import create_react_agent, AgentExecutor
 
 try:
