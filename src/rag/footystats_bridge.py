@@ -85,6 +85,7 @@ def convert_team_stats(csv_path: Path, output_dir: Path) -> Optional[Path]:
 
     text = "\n".join(lines)
 
+    output_dir.mkdir(parents=True, exist_ok=True)
     out_path = output_dir / f"{slug}_stats.txt"
     out_path.write_text(text, encoding="utf-8")
     return out_path

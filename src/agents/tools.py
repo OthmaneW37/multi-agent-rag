@@ -31,99 +31,54 @@ def _filter_results(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def _format_results(results: List[Dict[str, Any]]) -> str:
-    """Formate les resultats pour l'agent."""
+    """Formate les resultats pour l'agent (tronques a 300 caractères pour limiter les tokens)."""
     output = []
     for i, result in enumerate(results, 1):
         source = result.get("source", "inconnu")
         score = result.get("score", 0)
+        text = result["text"]
+        if len(text) > 300:
+            text = text[:300] + "..."
         output.append(
-            f"[Resultat {i}] Source: {source} (Score: {score:.3f})\n"
-            f"{result['text']}\n"
+            f"[R{i}] {source} (s:{score:.2f})\n{text}\n"
         )
     return "\n---\n".join(output)
 
 
 @tool
-def search_match_reports(query: str, top_k: int = 5) -> str:
-    """
-    Recherche des rapports de matchs et statistiques dans la base de donnees.
-
-    Args:
-        query: Requete de recherche semantique (ex: "WAC vs Raja resultat", "forme WAC domicile")
-        top_k: Nombre de resultats a retourner (defaut: 5)
-
-    Returns:
-        Passages pertinents trouves dans le corpus avec leurs sources.
-        Si aucun document n'est suffisamment pertinent, retourne un message
-        indiquant que les donnees sont insuffisantes.
-    """
+def search_match_reports(query: str, top_k: int = 3) -> str:
+    """Recherche semantique dans les stats FootyStats Botola Pro 2025/2026.
+    Args: query (ex: "WAC vs Raja resultat", "forme WAC domicile"), top_k (defaut 3)
+    Retourne passages pertinents avec sources, ou message si donnees insuffisantes."""
     index = get_index()
     results = retrieve_context(index, query, top_k=top_k)
     filtered = _filter_results(results)
-
     if not filtered:
-        return (
-            "[ATTENTION] Aucun document suffisamment pertinent trouve dans la base "
-            "de donnees pour cette requete. Les donnees disponibles ne permettent pas "
-            "de repondre de maniere fiable."
-        )
-
+        return "[ATTENTION] Aucun document pertinent trouve pour cette requete."
     return _format_results(filtered)
 
 
 @tool
 def query_sport_database(query: str) -> str:
-    """
-    Interroge la base de connaissances sportives avec une question.
-
-    Args:
-        query: Question a poser (ex: "Quel est le bilan du WAC a domicile cette saison?")
-
-    Returns:
-        Reponse synthetisee basee UNIQUEMENT sur les documents indexes.
-        Si les documents ne contiennent pas assez d'informations, indique
-        clairement que la reponse n'est pas disponible dans la base.
-    """
+    """Interroge la base FootyStats avec une question precise.
+    Args: query (ex: "bilan WAC domicile"). Retourne reponse basee sur les documents indexes."""
     index = get_index()
     response = query_index(index, query)
-    response_str = str(response)
-
-    # Guardrail : si la reponse est vide ou trop courte, c'est probablement
-    # que le query engine n'a pas trouve de documents pertinents
-    if len(response_str.strip()) < 20:
-        return (
-            "[ATTENTION] La base de donnees ne contient pas suffisamment "
-            "d'informations pour repondre a cette question de maniere fiable."
-        )
-
-    return response_str
+    if len(str(response).strip()) < 20:
+        return "[ATTENTION] Donnees insuffisantes dans la base."
+    return str(response)
 
 
 @tool
 def get_player_stats(player_name: str) -> str:
-    """
-    Recupere les statistiques d'un joueur specifique depuis la base.
-
-    Args:
-        player_name: Nom du joueur (ex: "Yahya Jabrane", "Zouhair El Moutaraji")
-
-    Returns:
-        Statistiques du joueur trouvees dans la base. Si aucune statistique
-        suffisamment pertinente n'est trouvee, indique que le joueur n'est pas
-        reference ou que les donnees sont insuffisantes.
-    """
+    """Recupere les stats d'un joueur specifique depuis la base.
+    Args: player_name (ex: "Nordin Amrabat"). Retourne stats ou message si non reference."""
     index = get_index()
     results = retrieve_context(index, f"statistiques joueur {player_name}", top_k=3)
     filtered = _filter_results(results)
-
     if not filtered:
-        return (
-            f"[ATTENTION] Aucune statistique suffisamment pertinente trouvee "
-            f"pour le joueur '{player_name}' dans la base de donnees."
-        )
-
-    output = f"Statistiques de {player_name}:\n"
-    for result in filtered:
-        output += f"\nSource: {result.get('source', 'inconnu')}\n{result['text']}\n"
-
-    return output
+        return f"[ATTENTION] Joueur '{player_name}' non trouve ou stats insuffisantes."
+    out = f"Stats {player_name}:\n"
+    for r in filtered:
+        out += f"\nSource: {r.get('source','inconnu')}\n{r['text']}\n"
+    return out

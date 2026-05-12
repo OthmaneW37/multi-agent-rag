@@ -19,12 +19,32 @@ def get_embedding_model():
 
 
 def get_llm_for_llamaindex():
-    """Retourne le LLM Ollama configure pour LlamaIndex."""
-    return Ollama(
-        model=config.ollama_model,
-        base_url=config.ollama_base_url,
-        request_timeout=120.0,
-    )
+    """Retourne le LLM configure pour LlamaIndex selon le provider choisi."""
+    provider = config.llm_provider.lower()
+    if provider == "ollama":
+        return Ollama(
+            model=config.ollama_model,
+            base_url=config.ollama_base_url,
+            request_timeout=120.0,
+        )
+    # Pour les autres providers (Groq, OpenAI, Anthropic),
+    # on utilise le wrapper LangChainLLM qui repose sur notre factory get_llm().
+    try:
+        from llama_index.llms.langchain import LangChainLLM
+        from src.llm_utils import get_llm
+
+        lc_llm = get_llm(temperature=0.7)
+        return LangChainLLM(llm=lc_llm)
+    except Exception as exc:
+        print(
+            f"[RAG] Impossible d'initialiser LangChainLLM ({exc}). "
+            f"Fallback sur Ollama."
+        )
+        return Ollama(
+            model=config.ollama_model,
+            base_url=config.ollama_base_url,
+            request_timeout=120.0,
+        )
 
 
 def create_index(documents: List) -> VectorStoreIndex:
@@ -70,15 +90,19 @@ def create_index(documents: List) -> VectorStoreIndex:
 
 def load_index() -> VectorStoreIndex:
     """Charge un index existant depuis le stockage persistant."""
+    print("[RAG] Chargement embedding model...")
     embed_model = get_embedding_model()
     Settings.embed_model = embed_model
-    Settings.llm = get_llm_for_llamaindex()
+    # Pas besoin de LLM ici, seuls les embeddings servent au retrieval
+    # Settings.llm = get_llm_for_llamaindex()
 
+    print("[RAG] Connexion ChromaDB...")
     chroma_client = chromadb.PersistentClient(path=config.vector_store_path)
     chroma_collection = chroma_client.get_or_create_collection("wac_sport_data")
     vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
+    print("[RAG] Chargement VectorStoreIndex...")
     index = VectorStoreIndex.from_vector_store(
         vector_store=vector_store,
         storage_context=storage_context,

@@ -54,7 +54,7 @@ def create_query_engine(index: VectorStoreIndex, similarity_top_k: int = 5):
 
 
 def retrieve_context(
-    index: VectorStoreIndex, query: str, top_k: int = 5, min_score: float = 0.15
+    index: VectorStoreIndex, query: str, top_k: int = 3, min_score: float = 0.15
 ) -> List[Dict[str, Any]]:
     """
     Recupere le contexte pertinent pour une requete.
@@ -101,7 +101,7 @@ def query_index(index: VectorStoreIndex, query: str) -> str:
     Returns:
         Les passages pertinents concatenes avec leurs sources
     """
-    results = retrieve_context(index, query, top_k=5, min_score=0.15)
+    results = retrieve_context(index, query, top_k=3, min_score=0.15)
 
     if not results:
         return (
@@ -109,13 +109,16 @@ def query_index(index: VectorStoreIndex, query: str) -> str:
             "de donnees pour cette requete."
         )
 
-    lines = [f"Requete : {query}", "=" * 50, ""]
+    lines = [f"Requete : {query}", "=" * 40, ""]
     for i, result in enumerate(results, 1):
+        text = result["text"]
+        if len(text) > 300:
+            text = text[:300] + "... [tronque]"
         lines.append(
             f"[Source {i}] {result.get('source', 'inconnu')} "
-            f"(pertinence: {result.get('score', 0):.3f})"
+            f"(score: {result.get('score', 0):.3f})"
         )
-        lines.append(result["text"])
+        lines.append(text)
         lines.append("")
 
     return "\n".join(lines)

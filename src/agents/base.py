@@ -1,34 +1,40 @@
 """Classe de base pour les agents du systeme WAC Sport Analytics."""
 
+import re
 import time
 from abc import ABC
 from typing import Any, Dict, List, Optional
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.tools import BaseTool
 
-from src.compat import create_react_agent, AgentExecutor
 from src.llm_utils import get_llm
 
 
 # Instructions anti-hallucination globales injectees dans TOUS les agents
 ANTI_HALLUCINATION_INSTRUCTIONS = """
-REGLES STRICTES ANTI-HALLUCINATION :
-1. Tu ne connais RIEN sur le football en dehors des DONNEES fournies dans ce prompt.
-2. Tu ne dois JAMAIS utiliser tes connaissances generales sur le football, les championnats, les equipes ou les joueurs.
-3. Si les donnees fournies sont insuffisantes, tu DOIS repondre explicitement que l'information manque.
-4. Tu ne dois JAMAIS inventer des noms d'equipes, de joueurs, de scores, de statistiques ou de classements.
-5. Tu ne dois JAMAIS parler d'autres championnats (Ligue 1, Premier League, La Liga, Serie A, Bundesliga, etc.).
-6. Tu ne parles que de la BOTOLA PRO marocaine et des equipes qui y figurent.
-7. Chaque fait que tu enonces doit etre directement issu des donnees fournies dans ce prompt.
-8. Si tu ne trouves pas une information dans les donnees fournies, dis-le clairement au lieu de deviner.
+REGLES ANTI-HALLUCINATION :
+1. Tu ne connais que les DONNEES fournies ici. Pas de connaissances generales.
+2. Si une info manque, dis "Non disponible". N'invente JAMAIS de noms, scores ou stats.
+3. Tu ne parles que de la BOTOLA PRO marocaine. Pas d'autres championnats.
+4. Chaque fait doit etre issu directement des donnees fournies.
 """
 
 
 class BaseAgent(ABC):
-    """Classe de base pour tous les agents du systeme multi-agents."""
+    """
+    Agent ReAct maison robuste.
+
+    Ne passe PAS par AgentExecutor (qui cree des threads internes incompatibles
+    avec sentence-transformers/PyTorch sous Streamlit). Le raisonnement ReAct
+    est implemente manuellement : on appelle le LLM, on parse Thought/Action,
+    on execute l'outil directement via tool.func(), on reboucle.
+
+    Fallback sur DirectLLM si le ReAct echoue apres max_iterations.
+    """
+
+    MAX_ITERATIONS = 5
 
     def __init__(
         self,
@@ -36,90 +42,172 @@ class BaseAgent(ABC):
         role: str,
         tools: List[BaseTool],
         llm: Optional[BaseChatModel] = None,
-        temperature: float = 0.7,
+        temperature: float = 0.2,
     ):
         self.name = name
         self.role = role
         self.tools = tools
         self.llm = llm or get_llm(temperature=temperature)
-        self.agent_executor = self._build_agent()
+        self._tool_map = {tool.name: tool for tool in tools}
 
-    def _build_agent(self) -> AgentExecutor:
-        """Construit l'agent ReAct avec les outils configures."""
-        # Template ReAct en francais adapte au football avec guardrails
-        template = """{system_prompt}
+    def _build_react_prompt(self, question: str, scratchpad: str) -> str:
+        tools_desc = "\n".join(
+            [f"- {tool.name}: {tool.description}" for tool in self.tools]
+        )
+        return f"""{self.role}
 
-{anti_hallucination}
+{ANTI_HALLUCINATION_INSTRUCTIONS}
 
 Tu as acces aux outils suivants :
-{tools}
+{tools_desc}
 
-Utilise le format suivant :
+Utilise le format suivant (STRICTEMENT) :
 
-Question : la question d'input que tu dois repondre
-Thought : tu dois toujours reflechir a ce que tu dois faire
-Action : l'action a entreprendre, doit etre l'une de [{tool_names}]
+Thought : reflechis a l'etape suivante
+Action : l'action a entreprendre (DOIT etre l'une de : {', '.join(self._tool_map.keys())})
 Action Input : l'entree pour l'action
 Observation : le resultat de l'action
-... (ce cycle Thought/Action/Action Input/Observation peut se repeter N fois)
+... (ce cycle peut se repeter jusqu'a 5 fois)
 Thought : Je sais maintenant la reponse finale
-Final Answer : la reponse finale a la question originale
+Final Answer : la reponse finale a la question
 
 Commence !
 
-Question : {input}
-Thought : {agent_scratchpad}"""
+Question : {question}
+{scratchpad}"""
 
-        prompt = PromptTemplate.from_template(template).partial(
-            system_prompt=self.role,
-            anti_hallucination=ANTI_HALLUCINATION_INSTRUCTIONS,
-            tools="\n\n".join(
-                [f"{tool.name}: {tool.description}" for tool in self.tools]
-            ),
-            tool_names=", ".join([tool.name for tool in self.tools]),
+    def _parse_thought_action(self, text: str) -> Optional[Dict[str, str]]:
+        """Parse la reponse LLM pour extraire Thought, Action, Action Input."""
+        # Cherche Final Answer en priorite
+        fa_match = re.search(
+            r"Final Answer\s*[:\-]?\s*(.+)", text, re.DOTALL | re.IGNORECASE
         )
+        if fa_match:
+            return {"type": "final", "answer": fa_match.group(1).strip()}
 
-        agent = create_react_agent(
-            llm=self.llm,
-            tools=self.tools,
-            prompt=prompt,
+        # Cherche Thought
+        thought_match = re.search(
+            r"Thought\s*[:\-]?\s*(.+?)(?=Action|Observation|Final Answer|$)",
+            text, re.DOTALL | re.IGNORECASE,
         )
+        thought = thought_match.group(1).strip() if thought_match else ""
 
-        return AgentExecutor(
-            agent=agent,
-            tools=self.tools,
-            verbose=True,
-            handle_parsing_errors=True,
-            max_iterations=10,
+        # Cherche Action
+        action_match = re.search(
+            r"Action\s*[:\-]?\s*(\w+)", text, re.IGNORECASE
         )
+        if not action_match:
+            return None
+        action_name = action_match.group(1).strip()
 
-    def run(
-        self, input_text: str, chat_history: Optional[List] = None
-    ) -> Dict[str, Any]:
+        # Cherche Action Input
+        input_match = re.search(
+            r"Action Input\s*[:\-]?\s*(.+?)(?=Observation|Thought|Action|Final Answer|$)",
+            text, re.DOTALL | re.IGNORECASE,
+        )
+        action_input = input_match.group(1).strip() if input_match else ""
+
+        return {
+            "type": "action",
+            "thought": thought,
+            "action": action_name,
+            "action_input": action_input,
+        }
+
+    def _execute_tool(self, action_name: str, action_input: str) -> str:
+        """Execute un outil directement (pas via invoke() pour eviter les threads)."""
+        tool = self._tool_map.get(action_name)
+        if not tool:
+            return f"[ERREUR] Outil '{action_name}' inconnu. Outils disponibles : {list(self._tool_map.keys())}"
+
+        try:
+            # Appel direct de la fonction Python sous-jacente
+            result = tool.func(action_input)
+            if result is None:
+                return "[Observation] Aucun resultat retourne."
+            return str(result)
+        except Exception as exc:
+            return f"[ERREUR] {exc}"
+
+    def _direct_llm_fallback(self, prompt: str) -> Dict[str, Any]:
+        """Fallback : appel LLM direct sans ReAct."""
+        messages = [
+            SystemMessage(content=self.role + "\n\n" + ANTI_HALLUCINATION_INSTRUCTIONS),
+            HumanMessage(content=prompt),
+        ]
+        try:
+            response = self.llm.invoke(messages)
+            return {"output": response.content}
+        except Exception as exc:
+            return {"output": f"[ERREUR LLM] {exc}"}
+
+    def run(self, input_text: str, **kwargs) -> Dict[str, Any]:
         """
-        Execute l'agent avec l'entree donnee.
+        Execute l'agent en mode ReAct avec fallback DirectLLM.
 
         Args:
-            input_text: Texte d'entree pour l'agent
-            chat_history: Historique de conversation optionnel
+            input_text: La question / tache a accomplir
 
         Returns:
-            Resultat de l'execution de l'agent
+            Dict avec cle 'output' contenant la reponse finale
         """
-        inputs = {"input": input_text}
-        if chat_history:
-            inputs["chat_history"] = chat_history
+        scratchpad = ""
+        question = input_text
 
-        return self.agent_executor.invoke(inputs)
+        for iteration in range(self.MAX_ITERATIONS):
+            prompt = self._build_react_prompt(question, scratchpad)
+            messages = [
+                SystemMessage(content="Tu es un assistant qui raisonne etape par etape."),
+                HumanMessage(content=prompt),
+            ]
+
+            try:
+                response = self.llm.invoke(messages)
+                text = response.content
+            except Exception as exc:
+                print(f"[{self.name}] Erreur LLM iteration {iteration}: {exc}")
+                return self._direct_llm_fallback(input_text)
+
+            parsed = self._parse_thought_action(text)
+
+            if parsed is None:
+                # Parsing rate : fallback si derniere iteration
+                if iteration >= self.MAX_ITERATIONS - 1:
+                    print(f"[{self.name}] Parsing ReAct echoue, fallback DirectLLM.")
+                    return self._direct_llm_fallback(input_text)
+                scratchpad += f"\nThought : Je dois reformuler ma reponse.\n"
+                continue
+
+            if parsed["type"] == "final":
+                return {"output": parsed["answer"]}
+
+            if parsed["type"] == "action":
+                thought = parsed["thought"]
+                action_name = parsed["action"]
+                action_input = parsed["action_input"]
+
+                print(f"[{self.name}] Thought: {thought[:80]}...")
+                print(f"[{self.name}] Action: {action_name}({action_input[:60]}...)")
+
+                observation = self._execute_tool(action_name, action_input)
+                print(f"[{self.name}] Observation: {observation[:100]}...")
+
+                scratchpad += (
+                    f"\nThought : {thought}\n"
+                    f"Action : {action_name}\n"
+                    f"Action Input : {action_input}\n"
+                    f"Observation : {observation}\n"
+                )
+
+        # Max iterations atteint : fallback
+        print(f"[{self.name}] Max iterations atteint, fallback DirectLLM.")
+        return self._direct_llm_fallback(input_text)
 
 
 class DirectLLMAgent(ABC):
     """
     Agent qui fonctionne par invocation LLM directe SANS boucle ReAct.
-
-    Ideal pour les agents qui n'ont pas besoin d'outils (analyse de texte,
-    redaction, validation). Cela evite les problemes de parsing ReAct
-    et reduit les hallucinations.
+    Ideal pour les agents qui n'ont pas besoin d'outils (analyse, redaction, validation).
     """
 
     def __init__(
@@ -134,16 +222,6 @@ class DirectLLMAgent(ABC):
         self.llm = llm or get_llm(temperature=temperature)
 
     def run(self, input_text: str, **kwargs) -> Dict[str, Any]:
-        """
-        Execute l'agent en invoquant directement le LLM.
-        Implemente un retry avec backoff exponentiel pour les rate limits.
-
-        Args:
-            input_text: Le prompt complet (instructions + donnees)
-
-        Returns:
-            Resultat sous forme de dict avec cle 'output'
-        """
         messages = [
             SystemMessage(content=self.role + "\n\n" + ANTI_HALLUCINATION_INSTRUCTIONS),
             HumanMessage(content=input_text),
@@ -161,12 +239,10 @@ class DirectLLMAgent(ABC):
                 is_rate_limit = any(k in error_str for k in ["rate limit", "429", "rate_limit_exceeded", "too many requests"])
                 if is_rate_limit and attempt < max_retries - 1:
                     delay = base_delay * (2 ** attempt)
-                    print(f"[{self.name}] Rate limit detecte, retry dans {delay}s... (tentative {attempt + 1}/{max_retries})")
+                    print(f"[{self.name}] Rate limit detecte, retry dans {delay}s...")
                     time.sleep(delay)
                 else:
-                    # Derniere tentative ou erreur non-recoverable
                     print(f"[{self.name}] Erreur LLM apres {attempt + 1} tentatives: {exc}")
                     raise
 
-        # Ne devrait jamais arriver
         return {"output": "[ERREUR] Impossible d'obtenir une reponse du LLM apres plusieurs tentatives."}

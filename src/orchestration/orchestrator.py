@@ -10,6 +10,7 @@ from src.agents.scout import ScoutAgent
 from src.agents.modelisateur import ModelisateurAgent
 from src.agents.tacticien import TacticienAgent
 from src.agents.validateur import ValidateurAgent
+from src.orchestration.match_context import get_match_context
 
 
 def _generate_xi_programmatic(club_name: str = "Wydad AC") -> str:
@@ -168,6 +169,51 @@ def _inject_stadium_in_report(report: str, stadium: str) -> str:
     return report
 
 
+def _inject_context_in_report(report: str, ctx: Dict[str, str]) -> str:
+    """Injecte le contexte de match enrichi (date, journee, lieu, enjeux) dans le rapport."""
+    # Competition / Journee
+    if ctx.get("journee") and ctx["journee"] != "Non disponible":
+        report = re.sub(
+            r"(Journee\s*[:\-]?\s*)(Non disponible|Inconnue|TBD)",
+            rf"\g<1>{ctx['journee']}",
+            report,
+            flags=re.IGNORECASE,
+        )
+    # Lieu
+    if ctx.get("lieu") and ctx["lieu"] != "Non disponible":
+        report = re.sub(
+            r"(Lieu\s*[:\-]?\s*)(Non disponible|Inconnue|TBD)",
+            rf"\g<1>{ctx['lieu']}",
+            report,
+            flags=re.IGNORECASE,
+        )
+    # Date
+    if ctx.get("date") and ctx["date"] != "Non disponible":
+        report = re.sub(
+            r"(Date\s*[:\-]?\s*)(Non disponible|Inconnue|TBD)",
+            rf"\g<1>{ctx['date']}",
+            report,
+            flags=re.IGNORECASE,
+        )
+        # Aussi remplacer dans le resume executif si present
+        report = re.sub(
+            r"(Date et heure\s*[:\-]?\s*)Non disponible",
+            rf"\g<1>{ctx['date']}",
+            report,
+            flags=re.IGNORECASE,
+        )
+    # Enjeux
+    if ctx.get("enjeux") and ctx["enjeux"] != "Non disponible":
+        # Cherche la ligne "Enjeux : Non disponible" ou similaire
+        report = re.sub(
+            r"(Enjeux\s*[:\-]?\s*)(Non disponible|Inconnue|TBD).*?(\n|$)",
+            rf"\g<1>{ctx['enjeux']}\n",
+            report,
+            flags=re.IGNORECASE,
+        )
+    return report
+
+
 def _inject_xi_in_report(report: str, xi_text: str) -> str:
     """Injecte le XI programmatique dans la section Composition du rapport final."""
     if not xi_text or xi_text.startswith("["):
@@ -231,14 +277,44 @@ def _inject_confrontations_in_report(report: str, confrontations: str) -> str:
     return report
 
 
+def _verifier_qualite_scout(donnees_scout: str) -> tuple[bool, str]:
+    """
+    Verifie que le scouting a produit des donnees exploitables.
+
+    Retourne (ok, message) où ok est True si la qualite est suffisante.
+    """
+    if len(donnees_scout) < 200:
+        return False, "Le rapport de scouting est trop court (< 200 caracteres)."
+
+    missing_count = donnees_scout.lower().count("aucun resultat")
+    if missing_count >= 5:
+        return False, "Le Scout n'a trouve aucune donnee pertinente dans la base RAG."
+
+    # Si le rapport est substantiel (>400 chars) et contient peu d'echecs RAG,
+    # on accepte meme sans ## (le Scout tente un reformatage en amont)
+    if len(donnees_scout) >= 400 and missing_count < 5:
+        return True, ""
+
+    # Se bloquer sur le format ## uniquement si le texte est vraiment court/maigre
+    if len(donnees_scout) < 400 and "##" not in donnees_scout:
+        return False, "Le rapport de scouting ne contient pas de sections structurees et est trop court."
+
+    return True, ""
+
+
 class WACOrchestrator:
     """
-    Orchestrateur qui coordonne les 4 agents du pipeline d'analyse :
+    Orchestrateur qui coordonne les 4 agents du pipeline d'analyse.
 
-    1. ScoutAgent -> Collecte les donnees brutes via RAG
+    Flux de travail :
+    1. ScoutAgent -> Collecte les donnees brutes via RAG (ReAct + outils)
     2. ModelisateurAgent -> Analyse les donnees et genere des predictions
     3. TacticienAgent -> Formule des recommandations strategiques
     4. ValidateurAgent -> Valide et compile le rapport final
+
+    Routage conditionnel :
+    - Si le Scout ne trouve pas assez de donnees, le pipeline s'arrete
+      et retourne un message d'erreur explicite.
     """
 
     def __init__(self):
@@ -252,6 +328,7 @@ class WACOrchestrator:
         adversaire: str,
         contexte: str = "",
         verbose: bool = True,
+        on_event=None,
     ) -> Dict[str, Any]:
         """
         Execute le pipeline complet d'analyse pour un match WAC vs adversaire.
@@ -260,10 +337,15 @@ class WACOrchestrator:
             adversaire: Nom de l'equipe adverse
             contexte: Informations supplementaires sur le match
             verbose: Affiche les etapes intermediaires
+            on_event: Callback optionnel(event_type, agent_id, data) pour streaming
 
         Returns:
             Dictionnaire contenant tous les resultats du pipeline
         """
+        def _emit(event_type, agent_id, data=None):
+            if on_event:
+                on_event(event_type, agent_id, data)
+
         results = {
             "adversaire": adversaire,
             "contexte": contexte,
@@ -271,6 +353,7 @@ class WACOrchestrator:
         }
 
         # Etape 1 : Scouting
+        _emit("agent_start", "scout")
         if verbose:
             print(f"\n{'='*60}")
             print(f"ETAPE 1/4 : SCOUTING - Collecte de donnees sur {adversaire}")
@@ -280,18 +363,43 @@ class WACOrchestrator:
         results["etapes"]["scout"] = scout_result
         donnees_scout = scout_result.get("output", str(scout_result))
 
+        _emit("agent_message", "scout", {"output": donnees_scout})
+
         if verbose:
             print(f"\n[SCOUT OUTPUT]\n{donnees_scout[:2000]}\n... [truncated]\n")
+
+        # Routage conditionnel : verifier la qualite du scouting
+        scout_ok, scout_msg = _verifier_qualite_scout(donnees_scout)
+        if not scout_ok:
+            print(f"\n[ORCHESTRATEUR] ARRET DU PIPELINE : {scout_msg}")
+            _emit("agent_error", "scout", {"message": scout_msg})
+            results["erreur"] = scout_msg
+            results["rapport_final"] = (
+                f"# ERREUR - Analyse impossible\n\n"
+                f"Le pipeline s'est arrete a l'etape de scouting.\n\n"
+                f"**Raison** : {scout_msg}\n\n"
+                f"**Conseil** : Verifiez que les donnees FootyStats sont presentes "
+                f"dans `data/raw/` et que l'index RAG est construit."
+            )
+            _emit("pipeline_end", "orchestrateur", results)
+            return results
+
+        _emit("agent_end", "scout")
+
+        # Etape 2 : Modelisation
+        _emit("agent_start", "modelisateur")
+        if verbose:
             print(f"\n{'='*60}")
             print(f"ETAPE 2/4 : MODELISATION - Analyse des donnees")
             print(f"{'='*60}\n")
 
-        # Etape 2 : Modelisation
         modelisateur_result = self.modelisateur.analyser(
             donnees_scout, adversaire
         )
         results["etapes"]["modelisateur"] = modelisateur_result
         analyse_modelisateur = modelisateur_result.get("output", str(modelisateur_result))
+
+        _emit("agent_message", "modelisateur", {"output": analyse_modelisateur})
 
         if verbose:
             print(f"\n[MODELISATEUR OUTPUT]\n{analyse_modelisateur[:2000]}\n... [truncated]\n")
@@ -299,8 +407,10 @@ class WACOrchestrator:
             print(f"ETAPE 3/4 : TACTIQUE - Formulation de la strategie")
             print(f"{'='*60}\n")
 
+        _emit("agent_end", "modelisateur")
+
         # Etape 3 : Tactique
-        # Tronque l'analyse du Modelisateur pour ne pas depasser les limites TPM
+        _emit("agent_start", "tacticien")
         analyse_truncated = analyse_modelisateur[:1500] + "\n... [analyse tronquee pour limites de taille]\n" if len(analyse_modelisateur) > 1500 else analyse_modelisateur
         tacticien_result = self.tacticien.formuler_strategie(
             analyse_truncated, adversaire
@@ -308,13 +418,18 @@ class WACOrchestrator:
         results["etapes"]["tacticien"] = tacticien_result
         strategie_tacticien = tacticien_result.get("output", str(tacticien_result))
 
+        _emit("agent_message", "tacticien", {"output": strategie_tacticien})
+
         if verbose:
             print(f"\n[TACTICIEN OUTPUT]\n{strategie_tacticien[:2000]}\n... [truncated]\n")
             print(f"\n{'='*60}")
             print(f"ETAPE 4/4 : VALIDATION - Compilation du rapport final")
             print(f"{'='*60}\n")
 
+        _emit("agent_end", "tacticien")
+
         # Etape 4 : Validation et rapport final
+        _emit("agent_start", "validateur")
         validateur_result = self.validateur.valider_et_compiler(
             donnees_scout,
             analyse_modelisateur,
@@ -324,7 +439,13 @@ class WACOrchestrator:
         results["etapes"]["validateur"] = validateur_result
         rapport_final = validateur_result.get("output", str(validateur_result))
 
-        # Post-processing : injection de la date, du stade et des confrontations si trouves
+        _emit("agent_message", "validateur", {"output": rapport_final})
+
+        # Post-processing : injection du contexte de match enrichi
+        ctx = get_match_context(adversaire)
+        rapport_final = _inject_context_in_report(rapport_final, ctx)
+
+        # Fallback anciens extracteurs si les nouveaux n'ont pas tout trouve
         upcoming_date = _extract_upcoming_match_date(adversaire)
         stadium = _extract_stadium(adversaire)
         confrontations = _extract_confrontations(adversaire)
@@ -332,11 +453,13 @@ class WACOrchestrator:
         rapport_final = _inject_stadium_in_report(rapport_final, stadium)
         rapport_final = _inject_confrontations_in_report(rapport_final, confrontations)
 
-        # Injection du XI genere programmatiquement
         xi_text = _generate_xi_programmatic("Wydad AC")
         rapport_final = _inject_xi_in_report(rapport_final, xi_text)
 
         results["rapport_final"] = rapport_final
+
+        _emit("agent_end", "validateur")
+        _emit("pipeline_end", "orchestrateur", results)
 
         if verbose:
             print(f"\n{'='*60}")

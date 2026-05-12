@@ -85,10 +85,22 @@ def run_ingestion(data_dir: str = "data/raw", rebuild: bool = False):
 
     if rebuild:
         import shutil
+        import stat
         from src.config import config
         if os.path.exists(config.vector_store_path):
-            shutil.rmtree(config.vector_store_path)
-            print("[RAG] Ancien index supprime.")
+            def on_rm_error(func, path, exc_info):
+                if not os.access(path, os.W_OK):
+                    os.chmod(path, stat.S_IWUSR)
+                    func(path)
+                else:
+                    raise
+            try:
+                shutil.rmtree(config.vector_store_path, onerror=on_rm_error)
+                print("[RAG] Ancien index supprime.")
+            except PermissionError as e:
+                print(f"[ERREUR] Fichier verrouille par un autre processus : {e.filename}")
+                print("Conseil : Fermez les terminaux/Python en arriere-plan ou redemarrez votre shell.")
+                return False
 
     index = build_or_load_index(data_dir, force_rebuild=rebuild)
     print("Index cree avec succes.")

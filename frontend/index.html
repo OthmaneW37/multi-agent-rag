@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAC Sport Analytics — Système Multi-Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="app">
+    <!-- ============ NAVBAR ============ -->
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <div class="logo-wac">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="30" stroke="#CC0000" stroke-width="3"/>
+            <path d="M18 22 L26 44 L32 28 L38 44 L46 22" stroke="#CC0000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="navbar-title">
+          <h1>WAC <span>SPORT ANALYTICS</span></h1>
+          <p>Système Multi-Agents RAG — Botola Pro 2025/2026</p>
+        </div>
+      </div>
+      <div class="agent-active-indicator" id="activeAgentIndicator">
+        <span class="dot"></span>
+        <span class="label">En attente...</span>
+      </div>
+    </nav>
+
+    <!-- ============ MAIN ============ -->
+    <div class="main">
+      <!-- ============ SIDEBAR ============ -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h2>Équipe d'Analyse</h2>
+          <p>4 agents spécialisés</p>
+        </div>
+        <ul class="agents-list" id="agentsList">
+          <!-- Rempli par JS -->
+        </ul>
+        <div class="sidebar-footer">
+          <div class="match-info">
+            <div class="match-label">Prochain Match</div>
+            <div class="match-teams">WAC <span class="vs">VS</span> Raja CA</div>
+            <div class="match-date">Botola Pro — J21</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ============ CHAT AREA ============ -->
+      <section class="chat-area">
+        <!-- Bannière d'animation immersive -->
+        <div class="animation-banner" id="animationBanner" hidden>
+          <div class="animation-content">
+            <div class="animation-label" id="animLabel">Scout en action</div>
+            <div class="animation-stage" id="animStage">
+              <!-- Animations CSS injectées ici -->
+            </div>
+            <div class="animation-progress">
+              <div class="progress-track"><div class="progress-fill" id="animProgress"></div></div>
+              <span class="progress-text" id="animText">Recherche des données...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages injectés par JS -->
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input-wrap">
+          <div class="chat-input-area">
+            <button class="btn-mic" title="Commande vocale" aria-label="Microphone">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1v10M8 5v6a4 4 0 008 0V5M5 10v2a7 7 0 0014 0v-2M12 19v4M8 23h8"/></svg>
+            </button>
+            <input
+              type="text"
+              id="chatInput"
+              placeholder="Demandez une analyse, des stats, ou une stratégie..."
+              autocomplete="off"
+            />
+            <button class="btn-send" id="btnSend" aria-label="Envoyer">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+          <div class="input-hint">
+            Exemples : « Analyse WAC vs Raja CA » · « Stats domicile WAC » · « Composition tactique »
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ TEMPLATES ANIMATIONS ============ -->
+  <template id="tmpl-scout">
+    <div class="anim-scout">
+      <div class="radar-wrap">
+        <div class="radar-circle c1"></div>
+        <div class="radar-circle c2"></div>
+        <div class="radar-circle c3"></div>
+        <div class="radar-sweep"></div>
+        <div class="radar-dots">
+          <span style="--x:20%;--y:30%;--d:0.2s"></span>
+          <span style="--x:70%;--y:20%;--d:0.6s"></span>
+          <span style="--x:50%;--y:60%;--d:1.0s"></span>
+          <span style="--x:80%;--y:75%;--d:1.4s"></span>
+          <span style="--x:30%;--y:80%;--d:1.8s"></span>
+          <span style="--x:60%;--y:40%;--d:2.2s"></span>
+        </div>
+      </div>
+      <div class="anim-title">Scan de la base FootyStats</div>
+    </div>
+  </template>
+
+  <template id="tmpl-modelisateur">
+    <div class="anim-modelisateur">
+      <div class="data-viz">
+        <div class="bar" style="--h:30%;--c:#06B6D4;--d:0s"><span>49%</span></div>
+        <div class="bar" style="--h:55%;--c:#F59E0B;--d:0.15s"><span>61%</span></div>
+        <div class="bar" style="--h:40%;--c:#10B981;--d:0.3s"><span>54%</span></div>
+        <div class="bar" style="--h:75%;--c:#EC4899;--d:0.45s"><span>72%</span></div>
+        <div class="bar" style="--h:60%;--c:#8B5CF6;--d:0.6s"><span>63%</span></div>
+        <div class="bar" style="--h:45%;--c:#CC0000;--d:0.75s"><span>58%</span></div>
+      </div>
+      <div class="spark-line">
+        <svg viewBox="0 0 200 60" preserveAspectRatio="none">
+          <polyline points="0,50 30,35 60,42 90,20 120,28 150,15 180,22 200,10" fill="none" stroke="#CC0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="0,55 30,45 60,48 90,38 120,42 150,35 180,38 200,32" fill="none" stroke="#CC000055" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="anim-title">Modélisation des tendances</div>
+    </div>
+  </template>
+
+  <template id="tmpl-tacticien">
+    <div class="anim-tacticien">
+      <div class="pitch">
+        <div class="pitch-lines">
+          <div class="halfway"></div>
+          <div class="center-circle"></div>
+          <div class="penalty-left"></div>
+          <div class="penalty-right"></div>
+        </div>
+        <div class="players">
+          <span class="player gk" style="--x:5%;--y:50%">1</span>
+          <span class="player" style="--x:22%;--y:15%">2</span>
+          <span class="player" style="--x:22%;--y:38%">4</span>
+          <span class="player" style="--x:22%;--y:62%">5</span>
+          <span class="player" style="--x:22%;--y:85%">3</span>
+          <span class="player" style="--x:40%;--y:25%">6</span>
+          <span class="player" style="--x:40%;--y:50%">8</span>
+          <span class="player" style="--x:40%;--y:75%">10</span>
+          <span class="player" style="--x:58%;--y:20%">7</span>
+          <span class="player" style="--x:58%;--y:50%">9</span>
+          <span class="player" style="--x:58%;--y:80%">11</span>
+        </div>
+        <div class="arrows">
+          <svg viewBox="0 0 300 180"><defs><marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#CC0000"/></marker></defs>
+            <path d="M 75 140 Q 110 120 120 90" fill="none" stroke="#CC0000" stroke-width="2" stroke-dasharray="200" stroke-dashoffset="200" marker-end="url(#arr)" class="arrow-path"/>
+            <path d="M 120 90 Q 150 60 180 40" fill="none" stroke="#CC0000" stroke-width="2" stroke-dasharray="200" stroke-dashoffset="200" marker-end="url(#arr)" class="arrow-path" style="animation-delay:0.6s"/>
+            <path d="M 180 40 L 230 30" fill="none" stroke="#CC0000" stroke-width="2" stroke-dasharray="200" stroke-dashoffset="200" marker-end="url(#arr)" class="arrow-path" style="animation-delay:1.2s"/>
+          </svg>
+        </div>
+      </div>
+      <div class="anim-title">Élaboration de la stratégie 4-3-3</div>
+    </div>
+  </template>
+
+  <template id="tmpl-validateur">
+    <div class="anim-validateur">
+      <div class="stamp-wrap">
+        <div class="stamp-ring">
+          <svg viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="54" fill="none" stroke="#CC0000" stroke-width="3" stroke-dasharray="339" stroke-dashoffset="339" class="stamp-circle"/>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#CC000044" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="stamp-check">
+          <svg viewBox="0 0 64 64">
+            <path d="M14 32 L26 44 L50 18" fill="none" stroke="#10B981" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="60" stroke-dashoffset="60" class="check-path"/>
+          </svg>
+        </div>
+        <div class="stamp-text">VALIDÉ</div>
+      </div>
+      <div class="paper-lines">
+        <div class="pline" style="--w:80%;--d:0.8s"></div>
+        <div class="pline" style="--w:60%;--d:1.0s"></div>
+        <div class="pline" style="--w:90%;--d:1.2s"></div>
+        <div class="pline" style="--w:50%;--d:1.4s"></div>
+      </div>
+      <div class="anim-title">Validation et compilation du rapport</div>
+    </div>
+  </template>
+
+  <template id="tmpl-orchestrateur">
+    <div class="anim-orchestrateur">
+      <div class="gear-system">
+        <div class="gear g1"></div>
+        <div class="gear g2"></div>
+        <div class="gear g3"></div>
+      </div>
+      <div class="anim-title">Coordination des agents</div>
+    </div>
+  </template>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

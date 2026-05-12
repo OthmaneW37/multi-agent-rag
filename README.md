@@ -295,18 +295,33 @@ Pour rafraichir les donnees avec les derniers resultats :
 
 ## Les Agents
 
-### Agent 1 : Scout (`src/agents/scout.py`)
+### Agent 1 : Scout (`src/agents/scout.py`) - **ReAct + Outils LangChain**
 
 **Role** : Parcourir la base vectorielle indexee via RAG pour extraire les donnees brutes.
 
-**Prompt systeme** : Expert en scouting football, specialise dans la Botola Pro et le WAC.
+**Type** : Agent **ReAct** heritant de `BaseAgent`. Il utilise une boucle de raisonnement Thought/Action/Observation/Final Answer avec les outils LangChain definis dans `tools.py`.
 
-**Outils** :
-- `search_match_reports` : Recherche semantique dans les rapports de matchs
-- `query_sport_database` : Interrogation synthetique de la base de connaissances
+**Implementation ReAct maison** (`src/agents/base.py`) :
+- Boucle ReAct manuelle (pas d'`AgentExecutor` LangChain) pour eviter les callbacks/threads internes qui entrent en conflit avec `sentence-transformers`/PyTorch.
+- Parsing tolerant du format ReAct avec fallback sur DirectLLM si le parsing echoue.
+- Max 5 iterations pour eviter les boucles infinies.
+
+**Outils LangChain** (`src/agents/tools.py`) :
+- `search_match_reports` : Recherche semantique dans les stats FootyStats
+- `query_sport_database` : Interrogation synthetique de la base
 - `get_player_stats` : Statistiques individuelles des joueurs
 
-**Temperature** : 0.3 (precis et factuel)
+**Raisonnement ReAct** :
+1. **Thought** : "Je dois d'abord rechercher la forme recente du WAC"
+2. **Action** : `search_match_reports("forme WAC stats collectives domicile")`
+3. **Observation** : Resultats tronques de l'index RAG
+4. **Thought** : "Maintenant je dois chercher la forme de l'adversaire"
+5. ... (cycle repeté pour chaque dimension d'analyse)
+6. **Final Answer** : Rapport de scouting structure
+
+**Donnees complementaires** : Chargement programmatique des effectifs depuis `player_stats.csv` pour enrichir le prompt.
+
+**Temperature** : 0.2 (precis et factuel)
 
 **Sortie** : Donnees brutes structurees (forme, stats, confrontations, joueurs cles)
 
@@ -316,12 +331,18 @@ Pour rafraichir les donnees avec les derniers resultats :
 
 **Role** : Traiter les donnees du Scout pour identifier tendances et points faibles.
 
-**Prompt systeme** : Analyste statistique football, rigoureux et objectif.
+**Type** : Agent **DirectLLM** avec **Chain-of-Thought explicite**.
 
-**Outils** :
-- `search_match_reports` : Recherches complementaires pour valider les analyses
+**Prompt systeme** : Analyste statistique football, rigoureux et objectif. Le prompt inclut une section "RAISONNEMENT (Chain-of-Thought)" qui oblige le LLM a penser etape par etape avant chaque conclusion.
 
-**Temperature** : 0.4 (equilibre entre creativite et rigueur)
+**Raisonnement CoT** :
+1. Examiner les donnees brutes et les classer par categorie
+2. Identifier les tendances et patterns dans chaque categorie
+3. Croiser les categories pour trouver des correlations
+4. Formuler des conclusions justifiees avec references aux chiffres
+5. Verifier que chaque conclusion est soutenue par les donnees
+
+**Temperature** : 0.2 (rigoureux et factuel)
 
 **Sortie** : Analyse comparative, prediction qualitative, facteurs cles du match
 
@@ -331,12 +352,19 @@ Pour rafraichir les donnees avec les derniers resultats :
 
 **Role** : Formuler des recommandations strategiques concretes pour le staff technique.
 
-**Prompt systeme** : Strategiste football experimente, pragmatique et concret.
+**Type** : Agent **DirectLLM** avec **Chain-of-Thought explicite**.
 
-**Outils** :
-- `search_match_reports` : Verification des donnees tactiques
+**Prompt systeme** : Strategiste football experimente, pragmatique et concret. Le prompt inclut une section "RAISONNEMENT (Chain-of-Thought)" avec 6 etapes de reflexion tactique.
 
-**Temperature** : 0.5 (creatif mais base sur les donnees)
+**Raisonnement CoT** :
+1. Analyser les forces/faiblesses identifiees par le Modelisateur
+2. Examiner l'effectif disponible et les profils des joueurs
+3. Choisir un schema tactique adapte
+4. Definir les roles individuels en fonction des stats
+5. Anticiper les reactions adverses
+6. Verifier la realisabilite avec l'effectif disponible
+
+**Temperature** : 0.3 (creatif mais base sur les donnees)
 
 **Sortie** : Schema tactique, composition, consignes individuelles, plans alternatifs
 
@@ -346,12 +374,19 @@ Pour rafraichir les donnees avec les derniers resultats :
 
 **Role** : Controle qualite et compilation du rapport final en Markdown.
 
-**Prompt systeme** : Controleur qualite de rapports sportifs, exigeant et constructif.
+**Type** : Agent **DirectLLM** avec **Chain-of-Thought explicite**.
 
-**Outils** :
-- `search_match_reports` : Verification des citations contre les sources
+**Prompt systeme** : Controleur qualite de rapports sportifs, exigeant et constructif. Le prompt inclut une section "RAISONNEMENT (Chain-of-Thought)" avec 6 etapes de validation.
 
-**Temperature** : 0.2 (tres strict et factuel)
+**Raisonnement CoT** :
+1. Lire les donnees brutes du Scout et identifier les faits etablis
+2. Comparer chaque affirmation du Modelisateur avec les faits du Scout
+3. Verifier la coherence entre la strategie du Tacticien et l'analyse
+4. Detecter les hallucinations
+5. Evaluer la qualite globale (ratio faits verifies / faits totaux)
+6. Compiler le rapport final structure
+
+**Temperature** : 0.1 (tres strict et factuel)
 
 **Sortie** : Rapport final Markdown avec verdict [VALIDE / A REVOIR] et score /20
 
@@ -387,8 +422,98 @@ class WACOrchestrator:
 
 1. **Flux sequentiel** : Scout -> Modelisateur -> Tacticien -> Validateur
 2. **Etat partage** : Les resultats de chaque agent sont passes au suivant
-3. **Gestion des erreurs** : Chaque etape est isolee pour eviter la cascade d'erreurs
-4. **Traçabilite** : Tous les resultats intermediaires sont sauvegardes en JSON
+3. **Routage conditionnel** : Verification automatique de la qualite du scouting avant de poursuivre. Si le Scout ne trouve pas assez de donnees, le pipeline s'arrete avec un message explicite.
+4. **Gestion des erreurs** : Chaque etape est isolee pour eviter la cascade d'erreurs
+5. **Traçabilite** : Tous les resultats intermediaires sont sauvegardes en JSON
+
+---
+
+## Tests Unitaires
+
+Le projet inclut une suite de tests `pytest` dans le dossier `tests/` :
+
+```bash
+pytest tests/
+```
+
+### Couverture
+
+| Fichier de test | Composant teste |
+|---|---|
+| `test_ingestion.py` | Chargement de documents (PDF, TXT, CSV) |
+| `test_bridge.py` | Conversion CSV FootyStats -> texte |
+| `test_retrieval.py` | Retrieval semantique avec mocks |
+| `test_orchestrator.py` | Orchestrateur avec agents mockes + routage conditionnel |
+
+---
+
+## Demo RAG vs No-RAG
+
+Un script de demonstration compare les reponses **avec** et **sans** RAG :
+
+```bash
+python demo_rag_vs_no_rag.py --question "Quel est le bilan du WAC a domicile?"
+```
+
+### Objectif
+
+Montrer que le LLM seul (sans RAG) est incapable de repondre de maniere fiable sur des donnees privees (FootyStats), tandis que le RAG fournit des reponses contextualisees avec citations verifiables.
+
+---
+
+## Interface Web Immersive (HTML/CSS/JS pur)
+
+Le projet dispose d'une interface **SPA immersive** en HTML/CSS/JS vanilla, avec un design premium inspiré des clubs européens de haut niveau. L'identité visuelle du Wydad Athletic Club (rouge #CC0000 et blanc sur fond sombre #111) est appliquée sur l'ensemble de l'interface.
+
+### Architecture
+
+```
+Frontend SPA (HTML/CSS/JS)  <--HTTP-->  Backend FastAPI  <--->  Pipeline Python
+```
+
+### Lancer le backend
+
+```bash
+# Installer les dependances (inclut fastapi et uvicorn)
+pip install -r requirements.txt
+
+# Lancer l'API
+python -m uvicorn api:app --reload --port 8000
+```
+
+L'API est disponible sur `http://localhost:8000` avec la documentation interactive Swagger sur `/docs`.
+
+### Lancer le frontend
+
+```bash
+cd frontend
+# Serveur HTTP simple (Python)
+python -m http.server 5500
+```
+
+L'interface est disponible sur `http://localhost:5500`.
+
+### Commandes disponibles dans le chat
+
+| Commande | Description | Endpoint utilisé |
+|---|---|---|
+| `Analyse WAC vs [adversaire]` | Pipeline complet multi-agents (1-2 min) | `/analyse` |
+| `Stats [club]` | Stats collectives brutes depuis FootyStats | `/stats/{club}` |
+| `Squad [club]` ou `Composition [club]` | Effectif réel avec buts, notes, minutes | `/squad/{club}` |
+| `Calendrier [club]` | Matchs passés et à venir | `/fixtures/{club}` |
+| `RAG vs No-RAG` | Demo comparative avec/sans retrieval | `/compare` |
+
+### Fonctionnalites immersives
+
+- **Chat interactif** : conversation type messagerie avec bulles stylisees par agent (couleur + icone propres)
+- **Sidebar agents** : liste des 4 agents avec etat en temps reel (Inactif / En cours / Termine) et barre de progression
+- **Animations immersives** : a chaque agent actif, une banniere animee s'affiche avec une animation CSS unique :
+  - **Scout** 🔍 : Radar/sonar avec ondes circulaires, sweep rotatif et particules qui apparaissent
+  - **Modelisateur** 📊 : Barres de graphiques qui grandissent, sparkline qui se dessine
+  - **Tacticien** 📋 : Terrain de football 4-3-3 qui se construit, joueurs qui se placent, fleches tactiques
+  - **Validateur** ✓ : Cachet officiel qui s'imprime, coche verte, lignes de document qui se remplissent
+- **Indicateur navbar** : badge en haut a droite indiquant l'agent actuellement en cours
+- **Donnees reelles** : le frontend est connecte au backend FastAPI. Les commandes rapides lisent directement les CSV FootyStats (`ScrappingDataBotola/data/`). L'analyse complete execute le vrai pipeline multi-agents Python.
 
 ---
 
@@ -427,15 +552,31 @@ ProjetAgenticAI/
 │   │   └── footystats_bridge.py      # Conversion CSV -> Texte
 │   ├── agents/
 │   │   ├── __init__.py
-│   │   ├── base.py                   # Classe de base Agent ReAct
+│   │   ├── base.py                   # Classe de base Agent ReAct + DirectLLM
 │   │   ├── tools.py                  # Outils RAG pour les agents
-│   │   ├── scout.py                  # Agent 1 : Scout
+│   │   ├── scout.py                  # Agent 1 : Scout (DirectLLM + outils programmatiques)
 │   │   ├── modelisateur.py           # Agent 2 : Modelisateur
 │   │   ├── tacticien.py              # Agent 3 : Tacticien
 │   │   └── validateur.py             # Agent 4 : Validateur
 │   └── orchestration/
 │       ├── __init__.py
-│       └── orchestrator.py           # Orchestrateur sequentiel
+│       └── orchestrator.py           # Orchestrateur sequentiel + routage
+├── tests/                            # Tests unitaires pytest
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_ingestion.py
+│   ├── test_bridge.py
+│   ├── test_retrieval.py
+│   └── test_orchestrator.py
+├── api.py                            # Backend FastAPI (endpoints REST)
+├── app.py                            # Interface Streamlit (deprecated)
+├── demo_rag_vs_no_rag.py             # Script demo comparative RAG
+├── frontend/                         # Interface immersive SPA (HTML/CSS/JS)
+│   ├── index.html                    # Structure HTML complete
+│   ├── css/
+│   │   └── style.css                 # Styles + animations immersives
+│   └── js/
+│       └── app.js                    # Logique chat + demo multi-agents
 ├── .env.example                      # Template de configuration
 ├── requirements.txt                  # Dependances Python
 └── README.md                         # Ce fichier
@@ -448,22 +589,25 @@ ProjetAgenticAI/
 | Critere d'evaluation | Implementation |
 |---|---|---|
 | **Pipeline RAG** | Ingestion multi-formats, chunking configurable, embeddings HuggingFace, ChromaDB, retrieval avec filtre de similarite |
-| **Agents LangChain** | 4 agents ReAct avec roles distincts, outils specifiques, prompts optimises, temperatures adaptees |
+| **Agents IA** | 4 agents avec roles distincts : Scout (ReAct + outils LangChain), Modelisateur (DirectLLM + CoT), Tacticien (DirectLLM + CoT), Validateur (DirectLLM + CoT). Prompts optimises, temperatures adaptees. |
 | **Orchestration** | Flux sequentiel, etat partage entre agents, gestion d'erreurs, traçabilite complete |
 | **Donnees reelles** | Integration FootyStats avec scraping automatique + bridge CSV->Texte |
 | **Cas d'usage** | Assistant d'analyse sportive concret et pertinent pour le WAC |
+| **Interface** | SPA immersive HTML/CSS/JS avec animations par agent (radar, terrain, data viz, validation) + backend FastAPI |
 | **Qualite du code** | Architecture modulaire, typage, docstrings, separation des responsabilites, configuration centralisee |
 
 ---
 
 ## Ameliorations possibles
 
-- [ ] Ajouter une interface web (Streamlit/Gradio) pour la demonstration
+- [x] Ajouter une interface web immersive (HTML/CSS/JS + animations agents) pour la demonstration
 - [ ] Implementer le parallelisme pour le Scout (recherches simultanees)
 - [ ] Ajouter un agent Routeur pour classifier les types de requetes
 - [ ] Automatiser le scraping via CI/CD (cron job hebdomadaire)
-- [ ] Support de l'indexation incrementale (ajout de documents sans re-indexation totale)
-- [ ] Ajout de tests unitaires avec pytest
+- [x] Support de l'indexation incrementale (ajout de documents sans re-indexation totale)
+- [x] Ajout de tests unitaires avec pytest
+- [x] Demo comparative RAG vs No-RAG
+- [x] Routage conditionnel dans l'orchestrateur
 
 ---
 
@@ -480,24 +624,26 @@ ProjetAgenticAI/
 
 **Solutions appliquees** :
 - ✅ Prompts anti-hallucination injectes dans TOUS les agents
-- ✅ Agent Scout : RAG direct en code (pas de boucle ReAct)
-- ✅ Agents Modelisateur/Tacticien/Validateur : appels LLM directs sans outils
+- ✅ Agent Scout : **ReAct maison** (`BaseAgent`) avec outils LangChain (`search_match_reports`, `query_sport_database`, `get_player_stats`). La boucle ReAct est implementee manuellement (pas d'`AgentExecutor`) pour eviter les callbacks/threads qui font crasher l'application. Fallback DirectLLM automatique si le parsing ReAct echoue.
+- ✅ Agents Modelisateur/Tacticien/Validateur : **Chain-of-Thought explicite** dans les prompts (6 etapes de raisonnement documentees). Appels LLM directs sans outils.
 - ✅ Seuils de similarite ajustes pour le modele all-MiniLM-L6-v2
-- ✅ `query_index` ne fait plus appel au LLM (evite timeouts + hallucinations)
+- ✅ `query_index` et `_format_results` tronquent les textes a 300 caracteres pour limiter la consommation de tokens
 - ✅ Recommandation : utiliser **Groq** (Llama3-8b) au lieu d'Ollama
 
-### 2. Lenteur extreme (15-20 min par analyse)
+### 2. Lenteur extreme / Erreur 413 (trop de tokens)
 
-**Symptome** : L'analyse prend plus de 15 minutes ou timeout.
+**Symptome** : L'analyse prend plus de 15 minutes, timeout, ou erreur Groq `Request too large for model` (limite 6000 TPM).
 
 **Causes** :
 - Ollama + Mistral = 4 appels LLM sequentiels, chacun tres lent
+- Le ReAct textuel accumule les observations dans la scratchpad (5 resultats x 1000 tokens = 5000 tokens)
 - `query_index` appelait le LLM via LlamaIndex (refine mode)
 
 **Solutions appliquees** :
-- ✅ Scout : un seul appel LLM apres RAG direct (au lieu de 5-10 en ReAct)
-- ✅ Modelisateur/Tacticien/Validateur : appels directs sans boucle ReAct
-- ✅ `query_index` retourne les sources sans synthese LLM
+- ✅ Scout : ReAct avec max 5 iterations et fallback DirectLLM. Les sources RAG sont tronquees a 300 caracteres pour limiter la taille de la scratchpad.
+- ✅ Modelisateur/Tacticien/Validateur : appels directs sans boucle ReAct (CoT dans le prompt uniquement)
+- ✅ `query_index` et retrieval tronquent les sources a 300 caracteres
+- ✅ `retrieve_context` top_k reduit a 3 par defaut
 - ✅ Recommandation : utiliser **Groq** (reponse en 5-10 secondes)
 
 ### 3. FootyStats ne scrappe pas
@@ -510,6 +656,16 @@ ProjetAgenticAI/
 1. Verifiez votre version Chrome (`chrome://version/`)
 2. Modifiez `CHROME_VERSION` dans `scraper.py`
 3. Executez le scraper manuellement et cliquez sur le Captcha si demande
+
+### 4. Crash silencieux de Streamlit (deprecated)
+
+**Symptome** : L'interface Streamlit se ferme immediatement sans message d'erreur lors du clic sur "Lancer l'analyse".
+
+**Cause** : Les outils LangChain (`@tool`) crees avec `StructuredTool` ou `tool.invoke()` initialisent des callbacks et threads internes qui entrent en conflit avec l'execution multi-threadee de Streamlit et les bibliotheques `sentence-transformers`/PyTorch.
+
+**Solution appliquee** :
+- ✅ Remplacement de Streamlit par une interface **React + FastAPI** plus robuste et moderne.
+- ✅ Suppression complete des outils LangChain dans le ScoutAgent. Remplacement par des appels directs aux fonctions `retrieve_context()` et `query_index()` de `src/rag/retrieval.py`.
 
 ---
 
