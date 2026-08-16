@@ -10,6 +10,10 @@
 
 ---
 
+## Demo
+
+[![multi-agent-rag Demo](https://img.youtube.com/vi/ADdOaZj2hvY/maxresdefault.jpg)](https://www.youtube.com/watch?v=ADdOaZj2hvY)
+
 ## Table des matieres
 
 - [Contexte et Objectifs](#contexte-et-objectifs)
