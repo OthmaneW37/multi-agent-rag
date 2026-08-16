@@ -12,7 +12,7 @@
 
 ## Demo
 
-[![multi-agent-rag Demo](https://img.youtube.com/vi/ADdOaZj2hvY/maxresdefault.jpg)](https://www.youtube.com/watch?v=ADdOaZj2hvY)
+[![multi-agent-rag Demo](https://img.youtube.com/vi/mv2hkPeqiZE/maxresdefault.jpg)](https://youtu.be/mv2hkPeqiZE)
 
 ## Table des matieres
 
